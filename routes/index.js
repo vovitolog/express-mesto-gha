@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const userRouter = require('./users');
+const cardRouter = require('./cards');
 
 router.get('/', (req, res) => {
   res.status(200);
@@ -7,5 +8,6 @@ router.get('/', (req, res) => {
 });
 
 router.use(userRouter);
+router.use(cardRouter);
 
 module.exports = router;

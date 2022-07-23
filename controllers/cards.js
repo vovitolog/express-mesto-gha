@@ -24,14 +24,20 @@ const deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params.id).then((card) => {
     if (!card) {
       res.status(404).send({ message: 'Карточка не найдена' });
+      return;
     }
     res.status(200).send(card);
   })
-    .catch((err) => res.status(500).send({ message: `Ошибка сервера ${err}` }));
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(400).send({ message: 'Введены некорректные данные' });
+        return;
+      }
+      res.status(500).send({ message: `Ошибка сервера ${err}` });
+    });
 };
 
 const likeCard = (req, res) => {
-  // const cardId = req.params.id;
   Card.findByIdAndUpdate(
     req.params.id,
     { $addToSet: { likes: req.user._id } },
@@ -39,14 +45,20 @@ const likeCard = (req, res) => {
   ).then((card) => {
     if (!card) {
       res.status(404).send({ message: 'Карточка не найдена' });
+      return;
     }
     res.status(200).send(card);
   })
-    .catch((err) => res.status(500).send({ message: `Ошибка сервера ${err}` }));
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(400).send({ message: 'Введены некорректные данные' });
+        return;
+      }
+      res.status(500).send({ message: `Ошибка сервера ${err}` });
+    });
 };
 
 const dislikeCard = (req, res) => {
-  // const cardId = req.params.id;
   Card.findByIdAndUpdate(
     req.params.id,
     { $pull: { likes: req.user._id } },
@@ -54,10 +66,17 @@ const dislikeCard = (req, res) => {
   ).then((card) => {
     if (!card) {
       res.status(404).send({ message: 'Карточка не найдена' });
+      return;
     }
     res.status(200).send(card);
   })
-    .catch((err) => res.status(500).send({ message: `Ошибка сервера ${err}` }));
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(400).send({ message: 'Введены некорректные данные' });
+        return;
+      }
+      res.status(500).send({ message: `Ошибка сервера ${err}` });
+    });
 };
 
 module.exports = {

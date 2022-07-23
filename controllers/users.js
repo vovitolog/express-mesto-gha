@@ -25,10 +25,17 @@ const getUserById = (req, res) => {
     .then((user) => {
       if (!user) {
         res.status(404).send({ message: 'Пользователь не найден' });
+        return;
       }
       res.status(200).send(user);
     })
-    .catch((err) => res.status(500).send({ message: `Ошибка сервера ${err}` }));
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(400).send({ message: 'Введены некорректные данные' });
+        return;
+      }
+      res.status(500).send({ message: `Ошибка сервера ${err}` });
+    });
 };
 
 const updateProfile = (req, res) => {

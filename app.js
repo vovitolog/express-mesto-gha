@@ -2,6 +2,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const router = require('./routes');
+const auth = require('./middlewares/auth');
+
 const {
   createUser,
   login,
@@ -23,14 +25,15 @@ app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
 });
 
-app.use((req, res, next) => {
+/* app.use((req, res, next) => {
   req.user = {
     _id: '62d8368ae7a04886a86067e9',
   };
 
   next();
 });
-
+ */
 app.post('/signin', login);
 app.post('/signup', createUser);
+app.use(auth);
 app.use(router);

@@ -117,6 +117,16 @@ const login = (req, res) => {
     .catch(() => res.status(500).send({ mesage: 'Ошибка сервера' }));
 };
 
+const getProfile = (req, res) => {
+  const userId = req.user._id;
+  User.findById(userId)
+    .then((user) => {
+      res.status(200).send(user);
+    }).catch(() => {
+      res.status(SERVER_ERROR).send({ message: 'Ошибка сервера' });
+    });
+};
+
 module.exports = {
   createUser,
   getUsers,
@@ -124,4 +134,5 @@ module.exports = {
   updateProfile,
   updateAvatar,
   login,
+  getProfile,
 };

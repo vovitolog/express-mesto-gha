@@ -1,4 +1,6 @@
+/* eslint-disable consistent-return */
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const { BAD_REQUEST_ERROR, NOT_FOUND_ERROR, SERVER_ERROR } = require('../utils/errors');
 
@@ -6,7 +8,11 @@ const createUser = (req, res) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
-  // eslint-disable-next-line consistent-return
+
+  if (!email || !password) {
+    return res.status(400).send({ message: 'E-mail или пароль не переданы' });
+  }
+
   User.findOne({ email }).then((user) => {
     if (user) {
       return res.status(409).send({ message: 'Пользователь с таким e-mail уже существует' });
@@ -27,13 +33,6 @@ const createUser = (req, res) => {
     });
   });
 };
-/*     }).catch((err) => {
-    if (err.name === 'ValidationError') {
-      res.status(BAD_REQUEST_ERROR).send({ message: 'Введены некорректные данные' });
-      return;
-    }
-    res.status(SERVER_ERROR).send({ message: 'Ошибка сервера' });
-    }); */
 
 const getUsers = (req, res) => {
   User.find({}).then((users) => res.status(200).send(users))
@@ -97,10 +96,32 @@ const updateAvatar = (req, res) => {
     });
 };
 
+const login = (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) {
+    return res.status(400).send({ message: 'E-mail или пароль не переданы' });
+  }
+  User.findOne({ email })
+    .then((user) => {
+      if (!user) {
+        return res.status(401).send({ message: 'Такого пользователя не существует' });
+      }
+      bcrypt.compare(password, user.password, (err, isValidPassword) => {
+        if (!isValidPassword) {
+          return res.status(401).send({ message: 'Неверный пароль' });
+        }
+        const token = jwt.sign({ id: user.id }, 'super-strong-secret');
+        return res.status(200).send({ token });
+      });
+    })
+    .catch(() => res.status(500).send({ mesage: 'Ошибка сервера' }));
+};
+
 module.exports = {
   createUser,
   getUsers,
   getUserById,
   updateProfile,
   updateAvatar,
+  login,
 };

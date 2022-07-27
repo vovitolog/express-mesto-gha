@@ -110,7 +110,7 @@ const login = (req, res) => {
         if (!isValidPassword) {
           return res.status(401).send({ message: 'Неверный пароль' });
         }
-        const token = jwt.sign({ id: user.id }, 'super-strong-secret');
+        const token = jwt.sign({ _id: user._id }, 'super-strong-secret'); // id или _id?
         return res.status(200).send({ token });
       });
     })

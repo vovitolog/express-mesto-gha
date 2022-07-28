@@ -101,7 +101,7 @@ const login = (req, res) => {
   if (!email || !password) {
     return res.status(400).send({ message: 'E-mail или пароль не переданы' });
   }
-  User.findOne({ email })
+  User.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
         return res.status(401).send({ message: 'Такого пользователя не существует' });

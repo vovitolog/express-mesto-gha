@@ -5,35 +5,26 @@ const User = require('../models/user');
 const NotFoundError = require('../errors/not-found-error');
 const BadRequestError = require('../errors/bad-request-error');
 const ConflictError = require('../errors/conflict-error');
-const AuthError = require('../errors/auth-error');
+// const AuthError = require('../errors/auth-error');
 
 const createUser = (req, res, next) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
 
-  if (!email || !password) {
-    throw new BadRequestError('E-mail или пароль не переданы');
-  }
-
-  User.findOne({ email }).then((user) => {
-    if (user) {
+  bcrypt.hash(password, 10).then((hash) => User.create({
+    name, about, avatar, email, password: hash,
+  })).then((user) => {
+    res.status(201).send(user);
+  }).catch((err) => {
+    if (err.name === 'ValidationError') {
+      throw new BadRequestError('Введены некорректные данные');
+    } else if (err.code === 11000) {
       throw new ConflictError('Пользователь с таким e-mail уже существует');
     }
-  });
-
-  bcrypt.hash(password, 10).then((hash) => {
-    User.create({
-      name, about, avatar, email, password: hash,
-    }).then((user) => {
-      res.status(201).send(user);
-    }).catch((err) => {
-      if (err.name === 'ValidationError') {
-        throw new BadRequestError('Введены некорректные данные');
-      }
-      next(err);
-    });
-  });
+    next(err);
+  })
+    .catch(next);
 };
 
 const getUsers = (req, res, next) => {
@@ -55,7 +46,8 @@ const getUserById = (req, res, next) => {
         throw new BadRequestError('Введены некорректные данные');
       }
       next(err);
-    });
+    })
+    .catch(next);
 };
 
 const updateProfile = (req, res, next) => {
@@ -72,7 +64,8 @@ const updateProfile = (req, res, next) => {
         throw new BadRequestError('Введены некорректные данные');
       }
       next(err);
-    });
+    })
+    .catch(next);
 };
 
 const updateAvatar = (req, res, next) => {
@@ -89,15 +82,16 @@ const updateAvatar = (req, res, next) => {
         throw new BadRequestError('Введены некорректные данные');
       }
       next(err);
-    });
+    })
+    .catch(next);
 };
 
 const login = (req, res, next) => {
   const { email, password } = req.body;
-  if (!email || !password) {
+  /* if (!email || !password) {
     return res.status(400).send({ message: 'E-mail или пароль не переданы' });
-  }
-  User.findOne({ email }).select('+password')
+  } */
+  /* User.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
         throw new AuthError('Такого пользователя не существует');
@@ -109,6 +103,12 @@ const login = (req, res, next) => {
         const token = jwt.sign({ _id: user._id }, 'super-strong-secret'); // id или _id?
         return res.status(200).send({ token });
       });
+    })
+    .catch(next); */
+  return User.findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign({ _id: user._id }, 'super-strong-secret', { expiresIn: '7d' });
+      res.status(200).send({ token });
     })
     .catch(next);
 };

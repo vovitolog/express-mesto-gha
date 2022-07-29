@@ -15,7 +15,8 @@ const createCard = (req, res, next) => {
         next(new BadRequestError('Введены некорректные данные'));
       }
       next(err);
-    });
+    })
+    .catch(next);
 };
 
 const getCards = (req, res, next) => {
@@ -40,7 +41,8 @@ const deleteCard = (req, res, next) => {
         throw new BadRequestError('Введены некорректные данные');
       }
       next(err);
-    });
+    })
+    .catch(next);
 };
 
 const likeCard = (req, res, next) => {
@@ -59,7 +61,8 @@ const likeCard = (req, res, next) => {
         throw new BadRequestError('Введены некорректные данные');
       }
       next(err);
-    });
+    })
+    .catch(next);
 };
 
 const dislikeCard = (req, res, next) => {
@@ -78,7 +81,8 @@ const dislikeCard = (req, res, next) => {
         throw new BadRequestError('Введены некорректные данные');
       }
       next(err);
-    });
+    })
+    .catch(next);
 };
 
 module.exports = {

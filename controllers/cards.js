@@ -25,12 +25,17 @@ const getCards = (req, res) => {
 };
 
 const deleteCard = (req, res) => {
-  Card.findByIdAndRemove(req.params.id).then((card) => {
+  // if (req.user._id.toString() === card.owner.toString())
+  Card.findById(req.params.id).then((card) => {
     if (!card) {
       res.status(NOT_FOUND_ERROR).send({ message: 'Карточка не найдена' });
-      return;
     }
-    res.status(200).send(card);
+    if (req.user._id.toString() !== card.owner.toString()) {
+      res.status(BAD_REQUEST_ERROR).send({ message: 'Нет прав для удаления карточки' });
+    } else {
+      Card.delete();
+      res.status(200).send(card);
+    }
   })
     .catch((err) => {
       if (err.name === 'CastError') {

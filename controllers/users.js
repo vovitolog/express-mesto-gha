@@ -27,6 +27,7 @@ const createUser = (req, res, next) => {
     } else if (err.code === 11000) {
       throw new ConflictError('Пользователь с таким e-mail уже существует');
     }
+    next(err);
   })
     .catch(next);
 };
@@ -45,6 +46,12 @@ const getUserById = (req, res, next) => {
       }
       res.status(200).send(user);
     })
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        throw new BadRequestError('Введены некорректные данные');
+      }
+      next(err);
+    })
     .catch(next);
 };
 
@@ -61,6 +68,7 @@ const updateProfile = (req, res, next) => {
       if (err.name === 'ValidationError') {
         throw new BadRequestError('Введены некорректные данные');
       }
+      next(err);
     })
     .catch(next);
 };
@@ -78,6 +86,7 @@ const updateAvatar = (req, res, next) => {
       if (err.name === 'ValidationError') {
         throw new BadRequestError('Введены некорректные данные');
       }
+      next(err);
     })
     .catch(next);
 };

@@ -5,7 +5,6 @@ const User = require('../models/user');
 const NotFoundError = require('../errors/not-found-error');
 const BadRequestError = require('../errors/bad-request-error');
 const ConflictError = require('../errors/conflict-error');
-// const AuthError = require('../errors/auth-error');
 
 const createUser = (req, res, next) => {
   const {
@@ -15,14 +14,19 @@ const createUser = (req, res, next) => {
   bcrypt.hash(password, 10).then((hash) => User.create({
     name, about, avatar, email, password: hash,
   })).then((user) => {
-    res.status(201).send(user);
+    res.status(201).send({
+      name: user.name,
+      about: user.about,
+      avatar: user.avatar,
+      email: user.email,
+      _id: user._id,
+    });
   }).catch((err) => {
     if (err.name === 'ValidationError') {
       throw new BadRequestError('Введены некорректные данные');
     } else if (err.code === 11000) {
       throw new ConflictError('Пользователь с таким e-mail уже существует');
     }
-    next(err);
   })
     .catch(next);
 };
@@ -45,7 +49,6 @@ const getUserById = (req, res, next) => {
       if (err.name === 'CastError') {
         throw new BadRequestError('Введены некорректные данные');
       }
-      next(err);
     })
     .catch(next);
 };
@@ -63,7 +66,6 @@ const updateProfile = (req, res, next) => {
       if (err.name === 'ValidationError') {
         throw new BadRequestError('Введены некорректные данные');
       }
-      next(err);
     })
     .catch(next);
 };
@@ -81,30 +83,12 @@ const updateAvatar = (req, res, next) => {
       if (err.name === 'ValidationError') {
         throw new BadRequestError('Введены некорректные данные');
       }
-      next(err);
     })
     .catch(next);
 };
 
 const login = (req, res, next) => {
   const { email, password } = req.body;
-  /* if (!email || !password) {
-    return res.status(400).send({ message: 'E-mail или пароль не переданы' });
-  } */
-  /* User.findOne({ email }).select('+password')
-    .then((user) => {
-      if (!user) {
-        throw new AuthError('Такого пользователя не существует');
-      }
-      bcrypt.compare(password, user.password, (err, isValidPassword) => {
-        if (!isValidPassword) {
-          throw new AuthError('Неверный пароль');
-        }
-        const token = jwt.sign({ _id: user._id }, 'super-strong-secret'); // id или _id?
-        return res.status(200).send({ token });
-      });
-    })
-    .catch(next); */
   return User.findUserByCredentials(email, password)
     .then((user) => {
       const token = jwt.sign({ _id: user._id }, 'super-strong-secret', { expiresIn: '7d' });

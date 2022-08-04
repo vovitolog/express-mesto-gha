@@ -6,6 +6,7 @@ const { errors } = require('celebrate');
 const router = require('./routes');
 const auth = require('./middlewares/auth');
 const NotFoundError = require('./errors/not-found-error');
+const { requestLogger, errorLogger } = require('./middlewares/logger');
 
 const {
   createUser,
@@ -17,6 +18,7 @@ const app = express();
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(requestLogger);
 
 mongoose.connect('mongodb://localhost:27017/mestodb', {
   useNewUrlParser: true,
@@ -50,6 +52,7 @@ app.use('*', () => {
   throw new NotFoundError('Запрашиваемый ресурс не найден');
 });
 
+app.use(errorLogger);
 app.use(errors());
 
 // eslint-disable-next-line no-unused-vars
